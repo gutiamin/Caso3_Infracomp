@@ -1,6 +1,5 @@
 package servidorSinSeguridad;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,16 +23,15 @@ import javax.management.ObjectName;
 
 import org.bouncycastle.operator.OperatorCreationException;
 
-public class CoordinadorSinS {
-
-	public static final String RUTA_TIEMPO = "./data/logTiempoSinS.csv";
-	public static final String RUTA_CPU = "./data/logCPUsinS.csv";
-	public static final String RUTA_PERDIDAS = "./data/logPerdidasSinS.csv";
-
+public class C {
+	
+	public static final String RUTA_TIEMPO_CON_S = "./data/logTiempoConS.csv";
+	public static final String RUTA_CPU_CON_S = "./data/logCPUConS.csv";
+	public static final String RUTA_PERDIDAS_CON_S = "./data/logPerdidasConS.csv";
 
 	private static ServerSocket socketServidor;	
 	private static final String MAESTRO = "MAESTRO: ";
-	public static final int N_THREADS = 8;
+	public static final int N_THREADS = 2;
 	private static X509Certificate certSer; /* acceso default */
 	private static KeyPair keyPairServidor; /* acceso default */
 	private static ExecutorService pool;
@@ -44,7 +42,7 @@ public class CoordinadorSinS {
 	 */
 	public static void main(String[] args) throws Exception{
 		
-		eliminarLogsViejos();
+		eliminarLogsViejos(); //TODO
 
 		System.out.println(MAESTRO + "Establecer puerto de conexion: 8080"); 
 		int ip = 8080; 
@@ -56,7 +54,8 @@ public class CoordinadorSinS {
 		// Crea el archivo de log
 		File file = crearArchivoLog();
 
-		ProtocoloServidorSinS.init(certSer, keyPairServidor, file);
+		//TODO cambios al servidor
+		D.init(certSer, keyPairServidor, file);
 
 		pool = Executors.newFixedThreadPool(N_THREADS);
 
@@ -66,14 +65,14 @@ public class CoordinadorSinS {
 
 		for (int i=0;true;i++) {
 			try { 
+
+	
 				Socket socketCliente = socketServidor.accept();
 				System.out.println(MAESTRO + "Cliente " + i + " aceptado.");
-				pool.execute(new ProtocoloServidorSinS(socketCliente, i));
-				
+				pool.execute(new D(socketCliente, i));
 				double cpuLoadActual = getSystemCpuLoad();
 
 				logCpuLoad(cpuLoadActual); //TODO medir el uso de cpu con seguridad
-
 
 			} catch (IOException e) {
 				System.out.println(MAESTRO + "Error creando el socket cliente.");
@@ -83,17 +82,32 @@ public class CoordinadorSinS {
 				logPeticionesPerdidas(1);
 			}
 		}
+		
+		
 	}
 
+	public static void eliminarLogsViejos() {
+		
+		File f = new File (RUTA_CPU_CON_S);
+		f.delete();
+		
+		File f2 = new File (RUTA_PERDIDAS_CON_S);
+		f2.delete();
+
+		File f3 = new File (RUTA_TIEMPO_CON_S);
+		f3.delete();
+
+		
+	}
 
 	private static File crearArchivoLog()
 			throws NoSuchAlgorithmException, OperatorCreationException, CertificateException, IOException {
 		File file = null;
-		keyPairServidor = Seguridad.grsa();
-		certSer = Seguridad.gc(keyPairServidor);
+		keyPairServidor = S.grsa();
+		certSer = S.gc(keyPairServidor);
 
-		//TODO log sin seguridad
-		String ruta = "./data/logServidorSinSeguridad.txt";
+		//TODO ruta log con seguridad
+		String ruta = "./data/logServidorConSeguridad.txt";
 
 		file = new File(ruta);
 		if (!file.exists()) {
@@ -104,48 +118,6 @@ public class CoordinadorSinS {
 		return file;
 	}
 
-	public static void eliminarLogsViejos() {
-
-		File f = new File (RUTA_CPU);
-		f.delete();
-
-		File f2 = new File (RUTA_PERDIDAS);
-		f2.delete();
-
-		File f3 = new File (RUTA_TIEMPO);
-		f3.delete();
-
-
-	}
-
-	public static void logCpuLoad(double cpu) {
-		//TODO
-		try {
-			File f = new File(RUTA_CPU);
-			FileWriter fwriter = new FileWriter(f,true);
-			String value = String.valueOf(cpu);
-			fwriter.append(value+"\n");
-			fwriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public static void logPeticionesPerdidas(int cpu) {
-
-		//TODO
-		try {
-			File f = new File(RUTA_PERDIDAS);
-			FileWriter fwriter = new FileWriter(f,true);
-			String value = String.valueOf(cpu);
-			fwriter.append(value + "\n");
-			fwriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	public static double getSystemCpuLoad() throws Exception {
 		MBeanServer mbs    = ManagementFactory.getPlatformMBeanServer();
@@ -159,5 +131,33 @@ public class CoordinadorSinS {
 			return Double.NaN;// returns a percentage value with 1 decimal point precision
 		return ((int)(value * 1000) / 10.0);
 
+	}
+
+
+	public static void logCpuLoad(double cpu) {
+		//TODO conSeguridad
+		try {
+			File f = new File(RUTA_CPU_CON_S);
+			FileWriter fwriter = new FileWriter(f,true);
+			String value = String.valueOf(cpu);
+			fwriter.append(value+"\n");
+			fwriter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void logPeticionesPerdidas(int cpu) {
+
+		//TODO conSeguridad
+		try {
+			File f = new File(RUTA_PERDIDAS_CON_S);
+			FileWriter fwriter = new FileWriter(f,true);
+			String value = String.valueOf(cpu);
+			fwriter.append(value + "\n");
+			fwriter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
