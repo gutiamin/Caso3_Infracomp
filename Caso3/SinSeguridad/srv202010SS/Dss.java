@@ -1,12 +1,13 @@
-package servidorConSeguridad;
+package srv202010SS;
+
+
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.management.ManagementFactory;
 import java.net.Socket;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -14,12 +15,15 @@ import java.util.Random;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import javax.xml.bind.DatatypeConverter;
 
-public class ProtocoloServidor extends Thread {
+import srv202010.S;
 
-	public static final String RUTA_TIEMPO = "./data/logTiempoConS.csv";
-
+public class Dss implements Runnable {
 
 	public static final String OK = "OK";
 	public static final String ALGORITMOS = "ALGORITMOS";
@@ -32,14 +36,15 @@ public class ProtocoloServidor extends Thread {
 	public static final String REC = "recibio-";
 	public static final int numCadenas = 8;
 
-
 	// Atributos
-	private Socket socketCliente = null;
+	private Socket sc = null;
 	private String dlg;
 	private byte[] mybyte;
 	private static File file;
 	private static X509Certificate certSer;
 	private static KeyPair keyPairServidor;
+	private static String mensaje = "TiempoTransaccion : N�meroPerdida : UsoCpu";
+	private int idP;
 
 	public static void init(X509Certificate pCertSer, KeyPair pKeyPairServidor, File pFile) {
 		certSer = pCertSer;
@@ -47,9 +52,10 @@ public class ProtocoloServidor extends Thread {
 		file = pFile;
 	}
 
-	public ProtocoloServidor (Socket csP, int idP) {
-		socketCliente = csP;
+	public Dss (Socket csP, int idP) {
+		sc = csP;
 		dlg = new String("delegado " + idP + ": ");
+		this.idP = idP;
 		try {
 			mybyte = new byte[520]; 
 			mybyte = certSer.getEncoded();
@@ -60,11 +66,11 @@ public class ProtocoloServidor extends Thread {
 	}
 
 	private boolean validoAlgHMAC(String nombre) {
-		return ((nombre.equals(Seguridad.HMACMD5) || 
-				nombre.equals(Seguridad.HMACSHA1) ||
-				nombre.equals(Seguridad.HMACSHA256) ||
-				nombre.equals(Seguridad.HMACSHA384) ||
-				nombre.equals(Seguridad.HMACSHA512)
+		return ((nombre.equals(S.HMACMD5) || 
+				nombre.equals(S.HMACSHA1) ||
+				nombre.equals(S.HMACSHA256) ||
+				nombre.equals(S.HMACSHA384) ||
+				nombre.equals(S.HMACSHA512)
 				));
 	}
 
@@ -77,35 +83,35 @@ public class ProtocoloServidor extends Thread {
 	private void escribirMensaje(String pCadena) {
 
 		try {
-
 			FileWriter fw = new FileWriter(file,true);
-			fw.write(pCadena);
-			fw.write("\n");
+			fw.write(pCadena + "\n");
 			fw.close();
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 	}
 
+	@Override
 	public void run() {
 		String[] cadenas;
+		long tiempoTransaccion = System.currentTimeMillis();
+		int error = 0;
 		cadenas = new String[numCadenas];
 
 		String linea;
 		System.out.println(dlg + "Empezando atencion.");
 		try {
 
-			PrintWriter ac = new PrintWriter(socketCliente.getOutputStream() , true);
-			BufferedReader dc = new BufferedReader(new InputStreamReader(socketCliente.getInputStream()));
+			PrintWriter ac = new PrintWriter(sc.getOutputStream() , true);
+			BufferedReader dc = new BufferedReader(new InputStreamReader(sc.getInputStream()));
 
 			/***** Fase 1:  *****/
 			linea = dc.readLine();
 			cadenas[0] = "Fase1: ";
 			if (!linea.equals(HOLA)) {
 				ac.println(ERROR);
-				socketCliente.close();
+				sc.close();
 				throw new Exception(dlg + ERROR + REC + linea +"-terminando.");
 			} else {
 				ac.println(OK);
@@ -118,25 +124,25 @@ public class ProtocoloServidor extends Thread {
 			cadenas[1] = "Fase2: ";
 			if (!(linea.contains(SEPARADOR) && linea.split(SEPARADOR)[0].equals(ALGORITMOS))) {
 				ac.println(ERROR);
-				socketCliente.close();
+				sc.close();
 				throw new Exception(dlg + ERROR + REC + linea +"-terminando.");
 			}
 
 			String[] algoritmos = linea.split(SEPARADOR);
-			if (!algoritmos[1].equals(Seguridad.DES) && !algoritmos[1].equals(Seguridad.AES) &&
-					!algoritmos[1].equals(Seguridad.BLOWFISH) && !algoritmos[1].equals(Seguridad.RC4)){
+			if (!algoritmos[1].equals(S.DES) && !algoritmos[1].equals(S.AES) &&
+					!algoritmos[1].equals(S.BLOWFISH) && !algoritmos[1].equals(S.RC4)){
 				ac.println(ERROR);
-				socketCliente.close();
+				sc.close();
 				throw new Exception(dlg + ERROR + "Alg.Simetrico" + REC + algoritmos + "-terminando.");
 			}
-			if (!algoritmos[2].equals(Seguridad.RSA) ) {
+			if (!algoritmos[2].equals(S.RSA) ) {
 				ac.println(ERROR);
-				socketCliente.close();
+				sc.close();
 				throw new Exception(dlg + ERROR + "Alg.Asimetrico." + REC + algoritmos + "-terminando.");
 			}
 			if (!validoAlgHMAC(algoritmos[3])) {
 				ac.println(ERROR);
-				socketCliente.close();
+				sc.close();
 				throw new Exception(dlg + ERROR + "AlgHash." + REC + algoritmos + "-terminando.");
 			}
 			cadenas[1] = dlg + REC + linea + "-continuando.";
@@ -149,13 +155,10 @@ public class ProtocoloServidor extends Thread {
 			cadenas[2] = dlg + "envio certificado del servidor. continuando.";
 			System.out.println(cadenas[2] + testCert);				
 
-			/***** Fase 4: *****/ //TODO registrar tiempo LECTURA LLAVE SIMETRICA
-			long tiempo1 = System.currentTimeMillis();
+			/***** Fase 4: *****/
 			cadenas[3] = "";
 			linea = dc.readLine();
-			byte[] llaveSimetrica = Seguridad.ad(
-					toByteArray(linea), 
-					keyPairServidor.getPrivate(), algoritmos[2] );
+			byte[] llaveSimetrica = DatatypeConverter.parseBase64Binary(linea);
 			SecretKey simetrica = new SecretKeySpec(llaveSimetrica, 0, llaveSimetrica.length, algoritmos[1]);
 			cadenas[3] = dlg + "recibio y creo llave simetrica. continuando.";
 			System.out.println(cadenas[3]);
@@ -164,32 +167,26 @@ public class ProtocoloServidor extends Thread {
 			cadenas[4]="";
 			linea = dc.readLine();
 			System.out.println(dlg + "Recibio reto del cliente:-" + linea + "-");
-			byte[] retoByte = toByteArray(linea);
-			byte [ ] ciphertext1 = Seguridad.se(retoByte, simetrica, algoritmos[1]);
-			ac.println(toHexString(ciphertext1));
-			System.out.println(dlg + "envio reto cifrado con llave simetrica al cliente. continuado.");
+			ac.println(linea);
+			System.out.println(dlg + "envio reto al cliente. continuado.");
 
 			linea = dc.readLine();
 			if ((linea.equals(OK))) {
 				cadenas[4] = dlg + "recibio confirmacion del cliente:"+ linea +"-continuado.";
 				System.out.println(cadenas[4]);
 			} else {
-				socketCliente.close();
-				throw new Exception(dlg + ERROR + "en confirmacion de llave simetrica." + REC + "-terminando.");
+				sc.close();
+				throw new Exception(dlg + ERROR + "en enviar reto." + REC + "-terminando.");
 			}
 
 			/***** Fase 6:  *****/
-			linea = dc.readLine();				
-			byte[] ccByte = Seguridad.sd(
-					toByteArray(linea), simetrica, algoritmos[1]);
-			String cc = toHexString(ccByte);
-			System.out.println(dlg + "recibio cc y descifro:-" + cc + "-continuado.");
+			linea = dc.readLine();
+			String cc = linea;
+			System.out.println(dlg + "recibio cc:-" + cc + "-continuado.");
 
-			linea = dc.readLine();				
-			byte[] claveByte = Seguridad.sd(
-					toByteArray(linea), simetrica, algoritmos[1]);
-			String clave = toHexString(claveByte);
-			System.out.println(dlg + "recibio clave y descifro:-" + clave + "-continuado.");
+			linea = dc.readLine();
+			String clave = linea;
+			System.out.println(dlg + "recibio clave:-" + clave + "-continuado.");
 			cadenas[5] = dlg + "recibio cc y clave - continuando";
 
 			Random rand = new Random(); 
@@ -197,22 +194,13 @@ public class ProtocoloServidor extends Thread {
 			String strvalor = valor+"";
 			while (strvalor.length()%4!=0) strvalor += 0;
 			byte[] valorByte = toByteArray(strvalor);
-			byte [ ] ciphertext2 = Seguridad.se(valorByte, simetrica, algoritmos[1]);
-			ac.println(toHexString(ciphertext2));
-			cadenas[6] = dlg + "envio valor "+strvalor+" cifrado con llave simetrica al cliente. continuado.";
+			ac.println(strvalor);
+			cadenas[6] = dlg + "envio valor "+strvalor+". continuado.";
 			System.out.println(cadenas[6]);
 
-			byte [] hmac = Seguridad.hdg(valorByte, simetrica, algoritmos[3]);
-			byte[] recibo = Seguridad.ae(hmac, keyPairServidor.getPrivate(), algoritmos[2]);
-			ac.println(toHexString(recibo));
-			System.out.println(dlg + "envio hmac cifrado con llave privada del servidor. continuado.");
-
-
-			//TODO registrar tiempo luego de enviar HMAC
-			long tiempo2 = System.currentTimeMillis();
-			logTime(tiempo1, tiempo2);
-
-			
+			byte [] hmac = Sss.hdg(valorByte, simetrica, algoritmos[3]);
+			ac.println(toHexString(hmac));
+			System.out.println(dlg + "envio hmac del valor. continuado.");
 
 			cadenas[7] = "";
 			linea = dc.readLine();	
@@ -220,18 +208,27 @@ public class ProtocoloServidor extends Thread {
 				cadenas[7] = dlg + "Terminando exitosamente." + linea;
 				System.out.println(cadenas[7]);
 			} else {
+				error++;
 				cadenas[7] = dlg + "Terminando con error" + linea;
 				System.out.println(cadenas[7]);
 			}
-			socketCliente.close();
+			sc.close();
 
-			//TODO cambio para asegurarse de que la info de los delegados se imprima en bloques
-			String cadenaImprimir = "";
-			for (int i=0;i<numCadenas;i++) {
-				cadenaImprimir += cadenas[i] + "\n";
+			//			    for (int i=0;i<numCadenas;i++) {
+			//				    escribirMensaje(cadenas[i]);
+			//			    }
+
+			if (idP == 0) {
+				escribirMensaje(mensaje);
 			}
-			escribirMensaje(cadenaImprimir);
-			
+			else {
+				tiempoTransaccion = System.currentTimeMillis() - tiempoTransaccion;
+
+				setMensaje(tiempoTransaccion + "ms" + " : " + error + " : " + getSystemCpuLoad());
+
+				escribirMensaje(mensaje);	
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -243,22 +240,23 @@ public class ProtocoloServidor extends Thread {
 
 	public static byte[] toByteArray(String s) {
 		return DatatypeConverter.parseBase64Binary(s);
+	}	
+
+	public double getSystemCpuLoad() throws Exception 
+	{
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		ObjectName name = ObjectName.getInstance("java.lang:type=OperatingSystem");
+		AttributeList list = mbs.getAttributes(name, new String[]{ "SystemCpuLoad" });
+		if (list.isEmpty()) return Double.NaN;
+		Attribute att = (Attribute)list.get(0);
+		Double value = (Double)att.getValue();
+		// usually takes a couple of seconds before we get real values
+		if (value == -1.0) return Double.NaN;
+		// returns a percentage value with 1 decimal point precision
+		return ((int)(value * 1000) / 10.0);
 	}
 
-	//TODO metodo para registar los logs de tiempo, con seg
-	public void logTime(long t1, long t2) {
-		try {
-			File f = new File(RUTA_TIEMPO);
-			FileWriter fwriter = new FileWriter(f,true);
-			String value = String.valueOf(t2-t1);
-			fwriter.append(value + "\n");
-			fwriter.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void setMensaje(String msj) {
+		mensaje = msj;
 	}
-
-
-
-
 }

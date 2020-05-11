@@ -1,4 +1,4 @@
-package clienteSinSeguridad;
+package clienteSS;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;

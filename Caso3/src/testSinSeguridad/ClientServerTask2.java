@@ -21,7 +21,6 @@ public class ClientServerTask2 extends Task{
 	public void execute() {
 		ClienteSinS cliente = new ClienteSinS();
 		cliente.run();
-		
 	}
 
 }

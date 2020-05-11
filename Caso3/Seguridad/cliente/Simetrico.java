@@ -1,4 +1,4 @@
-package clienteConSeguridad;
+package cliente;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
