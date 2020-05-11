@@ -6,8 +6,21 @@ delegado 0: envio-OK-continuando.
 delegado 0: envio- certificado del servidor. continuando.
 delegado 0: recibio-OK-continuando.
 delegado 0: envio-llave K_SC al cliente. continuado.
-delegado 0: envio-7840-reto al cliente. continuando 
-delegado 0: recibio-7840-reto correcto. continuado.
-delegado 0: recibio-MTIzMA==-continuando
-delegado 0: envio-1247-cifrado con K_SC. continuado.
+delegado 0: envio-4370-reto al cliente. continuando 
+delegado 0: recibio-4370-reto correcto. continuado.
+delegado 0: recibio-MTIzNDU2MDA=-continuando
+delegado 0: envio-1315-cifrado con K_SC. continuado.
 delegado 0: recibio-OK-Terminando exitosamente.
+delegado 2: recibio-HOLA-continuando.
+delegado 2: recibio-ALGORITMOS:Blowfish:RSA:HMACSHA1-continuando.
+delegado 2: envio-OK-continuando.
+delegado 2: recibio-certificado del cliente. continuando.
+delegado 2: envio-OK-continuando.
+delegado 2: envio- certificado del servidor. continuando.
+delegado 2: recibio-OK-continuando.
+delegado 2: envio-llave K_SC al cliente. continuado.
+delegado 2: envio-3370-reto al cliente. continuando 
+delegado 2: recibio-3370-reto correcto. continuado.
+delegado 2: recibio-MzQ1MA==-continuando
+delegado 2: envio-1316-cifrado con K_SC. continuado.
+delegado 2: recibio-OK-Terminando exitosamente.

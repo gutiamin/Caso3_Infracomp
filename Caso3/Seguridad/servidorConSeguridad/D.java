@@ -149,7 +149,7 @@ public class D extends Thread {
 			System.out.println(cadenas[2]);
 
 			
-			/***** Fase 3: Recibe certificado del cliente *****/				
+			/***** Fase 3: Recibe certificado del cliente *****/	
 			String strCertificadoCliente = dc.readLine();
 			byte[] certificadoClienteBytes = new byte[520];
 			certificadoClienteBytes = toByteArray(strCertificadoCliente);
@@ -163,6 +163,7 @@ public class D extends Thread {
 			System.out.println(cadenas[4]);
 			
 			/***** Fase 4: Envia certificado del servidor *****/
+			long tiempo1 = System.currentTimeMillis();
 			String strSerCert = toHexString(mybyte);
 			ac.println(strSerCert);
 			cadenas[5] = dlg + ENVIO + " certificado del servidor. continuando.";
@@ -246,6 +247,8 @@ public class D extends Thread {
 		        System.out.println(cadenas[12]);
 			}
 	        sc.close();
+	        long tiempo2 = System.currentTimeMillis();
+	        logTime(tiempo1, tiempo2);
 	        
 		    for (int i=0;i<numCadenas;i++) {
 			    escribirMensaje(cadenas[i]);
