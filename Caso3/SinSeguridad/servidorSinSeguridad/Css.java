@@ -23,11 +23,11 @@ import javax.management.ObjectName;
 
 import org.bouncycastle.operator.OperatorCreationException;
 
-public class C {
+public class Css {
 	
-	public static final String RUTA_TIEMPO_CON_S = "./data/logTiempoConS.csv";
-	public static final String RUTA_CPU_CON_S = "./data/logCPUConS.csv";
-	public static final String RUTA_PERDIDAS_CON_S = "./data/logPerdidasConS.csv";
+	public static final String RUTA_TIEMPO_SIN_S = "./data/logTiempoSS.csv";
+	public static final String RUTA_CPU_SIN_S = "./data/logCPUSS.csv";
+	public static final String RUTA_PERDIDAS_SIN_S = "./data/logPerdidasSS.csv";
 
 	private static ServerSocket socketServidor;	
 	private static final String MAESTRO = "MAESTRO: ";
@@ -55,7 +55,7 @@ public class C {
 		File file = crearArchivoLog();
 
 		//TODO cambios al servidor
-		D.init(certSer, keyPairServidor, file);
+		Dss.init(certSer, keyPairServidor, file);
 
 		pool = Executors.newFixedThreadPool(N_THREADS);
 
@@ -69,10 +69,10 @@ public class C {
 	
 				Socket socketCliente = socketServidor.accept();
 				System.out.println(MAESTRO + "Cliente " + i + " aceptado.");
-				pool.execute(new D(socketCliente, i));
+				pool.execute(new Dss(socketCliente, i));
 				double cpuLoadActual = getSystemCpuLoad();
 
-				logCpuLoad(cpuLoadActual); //TODO medir el uso de cpu con seguridad
+				logCpuLoad(cpuLoadActual); //TODO medir el uso de cpu sin seguridad
 
 			} catch (IOException e) {
 				System.out.println(MAESTRO + "Error creando el socket cliente.");
@@ -88,13 +88,13 @@ public class C {
 
 	public static void eliminarLogsViejos() {
 		
-		File f = new File (RUTA_CPU_CON_S);
+		File f = new File (RUTA_CPU_SIN_S);
 		f.delete();
 		
-		File f2 = new File (RUTA_PERDIDAS_CON_S);
+		File f2 = new File (RUTA_PERDIDAS_SIN_S);
 		f2.delete();
 
-		File f3 = new File (RUTA_TIEMPO_CON_S);
+		File f3 = new File (RUTA_TIEMPO_SIN_S);
 		f3.delete();
 
 		
@@ -103,11 +103,11 @@ public class C {
 	private static File crearArchivoLog()
 			throws NoSuchAlgorithmException, OperatorCreationException, CertificateException, IOException {
 		File file = null;
-		keyPairServidor = S.grsa();
-		certSer = S.gc(keyPairServidor);
+		keyPairServidor = Sss.grsa();
+		certSer = Sss.gc(keyPairServidor);
 
-		//TODO ruta log con seguridad
-		String ruta = "./data/logServidorConSeguridad.txt";
+		//TODO ruta log sin seguridad
+		String ruta = "./data/logServidorSinSeguridad.txt";
 
 		file = new File(ruta);
 		if (!file.exists()) {
@@ -137,7 +137,7 @@ public class C {
 	public static void logCpuLoad(double cpu) {
 		//TODO conSeguridad
 		try {
-			File f = new File(RUTA_CPU_CON_S);
+			File f = new File(RUTA_CPU_SIN_S);
 			FileWriter fwriter = new FileWriter(f,true);
 			String value = String.valueOf(cpu);
 			fwriter.append(value+"\n");
@@ -151,7 +151,7 @@ public class C {
 
 		//TODO conSeguridad
 		try {
-			File f = new File(RUTA_PERDIDAS_CON_S);
+			File f = new File(RUTA_PERDIDAS_SIN_S);
 			FileWriter fwriter = new FileWriter(f,true);
 			String value = String.valueOf(cpu);
 			fwriter.append(value + "\n");

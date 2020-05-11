@@ -20,9 +20,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
-public class D extends Thread {
+public class Dss extends Thread {
 
-	public static final String RUTA_TIEMPO = "./data/logTiempoConS.csv";
+	public static final String RUTA_TIEMPO = "./data/logTiempoSS.csv";
 
 
 	public static final String OK = "OK";
@@ -52,7 +52,7 @@ public class D extends Thread {
 		file = pFile;
 	}
 
-	public D (Socket csP, int idP) {
+	public Dss (Socket csP, int idP) {
 		sc = csP;
 		dlg = new String("delegado " + idP + ": ");
 		try {
@@ -65,11 +65,11 @@ public class D extends Thread {
 	}
 
 	private boolean validoAlgHMAC(String nombre) {
-		return ((nombre.equals(S.HMACMD5) || 
-				nombre.equals(S.HMACSHA1) ||
-				nombre.equals(S.HMACSHA256) ||
-				nombre.equals(S.HMACSHA384) ||
-				nombre.equals(S.HMACSHA512)
+		return ((nombre.equals(Sss.HMACMD5) || 
+				nombre.equals(Sss.HMACSHA1) ||
+				nombre.equals(Sss.HMACSHA256) ||
+				nombre.equals(Sss.HMACSHA384) ||
+				nombre.equals(Sss.HMACSHA512)
 				));
 	}
 
@@ -126,13 +126,13 @@ public class D extends Thread {
 			}
 			
 			String[] algoritmos = linea.split(SEPARADOR);
-			if (!algoritmos[1].equals(S.DES) && !algoritmos[1].equals(S.AES) &&
-				!algoritmos[1].equals(S.BLOWFISH) && !algoritmos[1].equals(S.RC4)){
+			if (!algoritmos[1].equals(Sss.DES) && !algoritmos[1].equals(Sss.AES) &&
+				!algoritmos[1].equals(Sss.BLOWFISH) && !algoritmos[1].equals(Sss.RC4)){
 				ac.println(ERROR);
 				sc.close();
 				throw new Exception(dlg + ERROR + "Alg.Simetrico" + REC + algoritmos + "-terminando.");
 			}
-			if (!algoritmos[2].equals(S.RSA) ) {
+			if (!algoritmos[2].equals(Sss.RSA) ) {
 				ac.println(ERROR);
 				sc.close();
 				throw new Exception(dlg + ERROR + "Alg.Asimetrico." + REC + algoritmos + "-terminando.");
@@ -178,10 +178,8 @@ public class D extends Thread {
 			}
 
 			/***** Fase 5: Envia llave simetrica *****/
-			SecretKey simetrica = S.kgg(algoritmos[1]);
-			byte [ ] ciphertext1 = S.ae(simetrica.getEncoded(), 
-					                 certificadoCliente.getPublicKey(), algoritmos[2]);
-			ac.println(toHexString(ciphertext1));
+			SecretKey simetrica = Sss.kgg(algoritmos[1]);
+			ac.println(simetrica);
 			cadenas[7] = dlg +  ENVIO + "llave K_SC al cliente. continuado.";
 			System.out.println(cadenas[7]);
 			
@@ -192,18 +190,13 @@ public class D extends Thread {
 			while (strReto.length()%4!=0) strReto += "0";
 
 			String reto = strReto;
-			byte[] bytereto = toByteArray(reto);
-			byte [] cipherreto = S.se(bytereto, simetrica, algoritmos[1]);
-			ac.println(toHexString(cipherreto));
+			ac.println(reto);
 			cadenas[8] = dlg + ENVIO + reto + "-reto al cliente. continuando ";
 			System.out.println(cadenas[8]);
 
 			/***** Fase 6: Recibe reto del cliente *****/
 			linea = dc.readLine();
-			byte[] retodelcliente = S.ad(
-					toByteArray(linea), 
-					keyPairServidor.getPrivate(), algoritmos[2] );
-			String strdelcliente = toHexString(retodelcliente);
+			String strdelcliente = linea;
 			if (strdelcliente.equals(reto)) {
 				cadenas[9] = dlg + REC + strdelcliente + "-reto correcto. continuado.";
 				System.out.println(cadenas[9]);
@@ -216,9 +209,7 @@ public class D extends Thread {
 							
 			/***** Fase 7: Recibe identificador de usuario *****/
 			linea = dc.readLine();
-			byte[] retoByte = toByteArray(linea);
-			byte [ ] ciphertext2 = S.sd(retoByte, simetrica, algoritmos[1]);
-			String nombre = toHexString(ciphertext2);
+			String nombre = linea;
 			cadenas[10] = dlg + REC + nombre + "-continuando";
 			System.out.println(cadenas[10]);
 			
@@ -232,9 +223,7 @@ public class D extends Thread {
 			else
 				strvalor = ((hora) * 100 + minuto) + "";
 			while (strvalor.length()%4!=0) strvalor = "0" + strvalor;
-			byte[] valorByte = toByteArray(strvalor);
-			byte [ ] ciphertext3 = S.se(valorByte, simetrica, algoritmos[1]);
-			ac.println(toHexString(ciphertext3));
+			ac.println(strvalor);
 			cadenas[11] = dlg + ENVIO + strvalor + "-cifrado con K_SC. continuado.";
 			System.out.println(cadenas[11]);
 	        
