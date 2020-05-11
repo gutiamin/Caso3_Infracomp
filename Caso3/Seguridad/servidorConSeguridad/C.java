@@ -23,7 +23,7 @@ import javax.management.ObjectName;
 
 import org.bouncycastle.operator.OperatorCreationException;
 
-public class Coordinador {
+public class C {
 	
 	public static final String RUTA_TIEMPO_CON_S = "./data/logTiempoConS.csv";
 	public static final String RUTA_CPU_CON_S = "./data/logCPUConS.csv";
@@ -55,7 +55,7 @@ public class Coordinador {
 		File file = crearArchivoLog();
 
 		//TODO cambios al servidor
-		ProtocoloServidor.init(certSer, keyPairServidor, file);
+		D.init(certSer, keyPairServidor, file);
 
 		pool = Executors.newFixedThreadPool(N_THREADS);
 
@@ -69,7 +69,7 @@ public class Coordinador {
 	
 				Socket socketCliente = socketServidor.accept();
 				System.out.println(MAESTRO + "Cliente " + i + " aceptado.");
-				pool.execute(new ProtocoloServidor(socketCliente, i));
+				pool.execute(new D(socketCliente, i));
 				double cpuLoadActual = getSystemCpuLoad();
 
 				logCpuLoad(cpuLoadActual); //TODO medir el uso de cpu con seguridad
@@ -103,8 +103,8 @@ public class Coordinador {
 	private static File crearArchivoLog()
 			throws NoSuchAlgorithmException, OperatorCreationException, CertificateException, IOException {
 		File file = null;
-		keyPairServidor = Seguridad.grsa();
-		certSer = Seguridad.gc(keyPairServidor);
+		keyPairServidor = S.grsa();
+		certSer = S.gc(keyPairServidor);
 
 		//TODO ruta log con seguridad
 		String ruta = "./data/logServidorConSeguridad.txt";
