@@ -30,7 +30,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-public class S {
+public class Sss {
 	public static final String DES = "DES";
 	public static final String AES = "AES";
 	public static final String BLOWFISH = "Blowfish";

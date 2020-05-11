@@ -13,9 +13,9 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import srv202010.S;
+import srv202010.Sss;
 
-public class Pss {
+public class Css {
 	private static ServerSocket ss;	
 	private static final String MAESTRO = "MAESTRO: ";
 	private static X509Certificate certSer; /* acceso default */
@@ -41,8 +41,8 @@ public class Pss {
 
 		// Crea el archivo de log
 		File file = null;
-		keyPairServidor = S.grsa();
-		certSer = S.gc(keyPairServidor);
+		keyPairServidor = Sss.grsa();
+		certSer = Sss.gc(keyPairServidor);
 		
 		if(threads == 1) {
 			String ruta = "./datosServidorSS/Servidor 1Pool, 400 transacciones, 20ms/10.txt" ;
@@ -105,18 +105,6 @@ public class Pss {
 					e.printStackTrace();
 				}
 			}
-		}
-		
-		
-//		String ruta = "./resultados.txt";
-//   
-//        file = new File(ruta);
-//        if (!file.exists()) {
-//            file.createNewFile();
-//        }
-//        FileWriter fw = new FileWriter(file);
-//        fw.close();
-        
-        
+		}     
 	}
 }
