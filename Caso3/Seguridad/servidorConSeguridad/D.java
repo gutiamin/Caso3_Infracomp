@@ -252,6 +252,7 @@ public class D extends Thread {
 	        
 		    for (int i=0;i<numCadenas;i++) {
 			    escribirMensaje(cadenas[i]);
+			    
 		    }
 		   
         } catch (Exception e) {
