@@ -39,8 +39,8 @@ public class C {
 
 		// Crea el archivo de log
 		File file = null;
-		keyPairServidor = Sss.grsa();
-		certSer = Sss.gc(keyPairServidor);
+		keyPairServidor = S.grsa();
+		certSer = S.gc(keyPairServidor);
 		
 		if(threads == 1) {
 			String ruta = "./datosServidorCS/Servidor 1Pool, 400 transacciones, 20ms/10.txt" ;

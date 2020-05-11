@@ -13,7 +13,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import srv202010.Sss;
+import srv202010.S;
 
 public class Css {
 	private static ServerSocket ss;	
