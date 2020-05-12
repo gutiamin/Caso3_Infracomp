@@ -92,7 +92,8 @@ public class Cliente extends Thread {
     public void etapa1() throws Exception {
         Scanner sc = new Scanner(System.in);
         System.out.println("Para iniciar, escriba HOLA");
-        String input = sc.next();
+//        String input = sc.next();
+        String input = HOLA;
 
         if (input.equals(HOLA)) {
             //hablarle al servidor
@@ -105,7 +106,8 @@ public class Cliente extends Thread {
 
             //algoritmo simetrico
             System.out.println("Seleccione un algoritmo simetrico escribiendo el numero del deseado (ej: 1): \n" + "1.AES \n" + "2.Blowfish");
-            int algSim = sc.nextInt();
+//            int algSim = sc.nextInt();
+            int algSim = 1;
             if (algSim == 1) {
                 mensajeAlgoritmos += AES + ":";
                 algoritmoSimetrico = AES;
@@ -118,7 +120,8 @@ public class Cliente extends Thread {
 
             //algoritmo asimetrico
             System.out.println("Seleccione un algoritmo asimetrico escribiendo el numero del deseado (ej: 1): \n" + "1.RSA \n");
-            int algAsim = sc.nextInt();
+//            int algAsim = sc.nextInt();
+            int algAsim = 1;
             if (algAsim == 1) {
                 mensajeAlgoritmos += RSA + ":";
                 algoritmoAsimetrico = RSA;
@@ -128,7 +131,8 @@ public class Cliente extends Thread {
 
             //algoritmo HMAC
             System.out.println("Seleccione un algoritmo HMAC escribiendo el numero del deseado (ej: 1): \n" + "1.HmacSHA1 \n" + "2.HmacSHA256 \n" + "3.HmacSHA384 \n" + "4.HmacSHA512 \n");
-            int algHmac = sc.nextInt();
+//            int algHmac = sc.nextInt();
+            int algHmac = 1;
             if (algHmac == 1) {
                 mensajeAlgoritmos += HMACSHA1;
                 algoritmoHMac = HMACSHA1;
@@ -227,7 +231,8 @@ public class Cliente extends Thread {
         System.out.println(resp6);
         
         System.out.println("Escriba su ID de usuario:");
-        String idUsuario = sc.next();
+//        String idUsuario = sc.next();
+        String idUsuario = "123";
         String idUsuarioMultiplo4 = darStringMultiplo4(idUsuario);
         byte[] idUsuarioCifradoEnBytes = cifradorS.cifrar(llaveSimetrica, algoritmoSimetrico, idUsuarioMultiplo4.getBytes());
         String idUsuarioCifrado = DatatypeConverter.printBase64Binary(idUsuarioCifradoEnBytes);
